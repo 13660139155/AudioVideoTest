@@ -5,5 +5,8 @@
     <string name="stop_record">停止录音</string>
     <string name="start_play">播放</string>
     <string name="stop_play">停止</string>
+    <string name="to_audio">to_audio</string>
+    <string name="to_media">to_media</string>
+    <string name="to_openGL">to_openGL</string>
 
 </resources>

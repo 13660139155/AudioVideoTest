@@ -2,6 +2,7 @@ package com.example.hy.audiovideotest.audio;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.media.AudioAttributes;
 import android.media.AudioFormat;
@@ -24,6 +25,7 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.example.hy.audiovideotest.R;
+import com.example.hy.audiovideotest.media.MediaActivity;
 import com.example.hy.audiovideotest.unit.MyUnit;
 
 import java.io.ByteArrayOutputStream;
@@ -42,7 +44,7 @@ import static com.example.hy.audiovideotest.audio.GlobalConfig.CHANNEL_CONFIG_2;
 import static com.example.hy.audiovideotest.audio.GlobalConfig.SAMPLE_RATE_INHZ;
 
 /**
- * Android视音频开发
+ * Android视音频开发之音频采集（AudioRecord），音频播放（AudioTrack）
  * 一、使用AudioRecord采集音频PCM并保存到文件：
  * 步骤：
  * 1、创建一个AudioRecord对象
@@ -63,7 +65,7 @@ import static com.example.hy.audiovideotest.audio.GlobalConfig.SAMPLE_RATE_INHZ;
  * 5、结束播放，释放资源
  */
 
-public class MainActivity extends AppCompatActivity {
+public class AudioActivity extends AppCompatActivity {
 
     private static final String TAG = "rain";
     private Button btnControl, btnConvert, btnPlay;
@@ -71,7 +73,9 @@ public class MainActivity extends AppCompatActivity {
     //需要申请的运行时权限
     private String[] permissions = new String[]{
             Manifest.permission.RECORD_AUDIO,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.CAMERA
     };
     private List<String> mPermissionList = new ArrayList<>(); //被用户拒绝的权限列表
     private final int MY_PERMISSIONS_REQUEST = 1024;
@@ -87,11 +91,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_audio);
         btnControl = findViewById(R.id.btn_control);
         btnConvert = findViewById(R.id.btn_convert);
         btnPlay = findViewById(R.id.btn_play);
-        checkPermissions();
+
         //使用AudioRecord采集音频PCM并保存到文件
         btnControl.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -266,11 +270,18 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if(requestCode == MY_PERMISSIONS_REQUEST){
-            for (int i = 0; i < grantResults.length; i++) {
-                if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
-                    Log.d(TAG, permissions[i] + " 权限被用户禁止！");
-                    Toast.makeText(this, "You deny the permission!", Toast.LENGTH_SHORT).show();
+            if(grantResults.length > 0){
+                for (int i = 0; i < grantResults.length; i++) {
+                    if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
+                        Log.d(TAG, permissions[i] + " 权限被用户禁止！");
+                        Toast.makeText(this, "You deny the permission!", Toast.LENGTH_SHORT).show();
+                        finish();
+                        return;
+                    }
                 }
+                //do other
+            }else {
+                Toast.makeText(this, "something wrong!", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -349,8 +360,9 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * 检查权限
+     * @return true为权限已经全部被授权，false为权限没有全部被授权
      */
-    private void checkPermissions(){
+    private boolean checkPermissions(){
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
             for (int i = 0; i < permissions.length; i++) {
                 if (ContextCompat.checkSelfPermission(this, permissions[i]) != PackageManager.PERMISSION_GRANTED) {
@@ -360,7 +372,10 @@ public class MainActivity extends AppCompatActivity {
             if (!mPermissionList.isEmpty()) {
                 String[] permissions = mPermissionList.toArray(new String[mPermissionList.size()]);
                 ActivityCompat.requestPermissions(this, permissions, MY_PERMISSIONS_REQUEST);
+                return false;
             }
+            return true;
         }
+        return false;
     }
 }
